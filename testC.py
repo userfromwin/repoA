@@ -1,0 +1,2 @@
+def cher():
+    return "believe"
