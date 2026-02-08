@@ -16,8 +16,14 @@ jobs:
 
       - name: Find forbidden string "abc"
         run: |
-          if grep -RIn "abc" --include="*.py" --include="*.txt" .; then
-            echo "Forbidden string 'abc' found."
+          set +e  # エラー即終了を無効化
+
+          matches=$(grep -RIn "abc" --include="*.py" --include="*.txt" .)
+          status=$?  # grep の exit code を保存
+
+          if [ $status -eq 0 ]; then
+            echo "Forbidden string 'abc' found:"
+            echo "$matches"
             exit 1
           else
             echo "No forbidden string found."
