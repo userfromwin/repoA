@@ -1,0 +1,2 @@
+def calcA():
+    return "abcDEF"
