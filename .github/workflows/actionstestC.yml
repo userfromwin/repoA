@@ -1,0 +1,20 @@
+name: Simple Test
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Always succeed
+        run: echo "This step always succeeds"
+
+      # - name: Always fail
+      #   run: |
+      #     echo "This step will fail"
+      #     exit 1
