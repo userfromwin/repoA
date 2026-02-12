@@ -1,0 +1,64 @@
+【electron\main\index.ts】
+
+import Database from 'better-sqlite3'
+
+const dbPath = path.join(app.getPath('userData'), 'app.db');
+const db = new Database(dbPath);
+
+app.whenReady().then(()=>{
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      text TEXT NOT NULL
+    );
+  `);
+
+  console.log('SQLite ready:', dbPath);
+
+  createWindow()
+})
+
+ipcMain.handle('add-note', (event, text: string) => {
+  const stmt = db.prepare('INSERT INTO notes (text) VALUES (?)');
+  const info = stmt.run(text);
+  return info.lastInsertRowid;
+});
+
+ipcMain.handle('get-notes', () => {
+  const stmt = db.prepare('SELECT * FROM notes ORDER BY id ASC');
+  return stmt.all();
+});
+
+【electron\preload\index.ts】
+
+contextBridge.exposeInMainWorld('api', {
+  addNote: (text: string) => ipcRenderer.invoke('add-note', text),
+  getNotes: () => ipcRenderer.invoke('get-notes')
+});
+
+【src\vite-env.d.ts】
+
+interface Window {
+  // expose in the `electron/preload/index.ts`
+  ipcRenderer: import('electron').IpcRenderer
+  api: {
+    addNote: (text: string) => Promise<number>;
+    getNotes: () => Promise<any[]>;
+  };
+}
+
+【src\App.tsx】
+『functionフィールド部』
+  async function addNote() {
+    const id = await window.api.addNote('Hello SQLite');
+    console.log('inserted id:', id);
+  }
+
+  async function loadNotes() {
+    const notes = await window.api.getNotes();
+    console.log(notes);
+  }
+【return部】
+      <button onClick={addNote}>Add Note</button>
+      <button onClick={loadNotes}>Load Notes</button>
