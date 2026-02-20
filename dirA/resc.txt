@@ -1,0 +1,80 @@
+import itertools
+
+# -----------------------------
+# 問題設定（自由に変更可能）
+# -----------------------------
+target = 37  # 型抜き器の総ブロック数
+dough_sizes = [7, 11, 13]  # 生地のブロック数
+cutter_sizes = [2, 3, 5]   # 型抜き器のブロック数
+cutter_counts = [6, 5, 2]  # 型抜き器の個数（2,3,5 の順）
+
+# -----------------------------
+# 1. 各生地サイズを 2,3,5 で分割する全パターンを列挙
+# -----------------------------
+def partitions(size, cutter_sizes):
+    """size を cutter_sizes の組み合わせで作る全パターンを返す"""
+    results = []
+    max_counts = [size // c for c in cutter_sizes]
+
+    for counts in itertools.product(*[range(m+1) for m in max_counts]):
+        total = sum(c * n for c, n in zip(cutter_sizes, counts))
+        if total == size:
+            results.append(counts)
+    return results
+
+
+# 各生地サイズごとの分割パターンを事前計算
+dough_patterns = [partitions(s, cutter_sizes) for s in dough_sizes]
+
+
+# -----------------------------
+# 2. 生地の個数組み合わせを総当たり
+# -----------------------------
+best_total = 0
+best_solution = None
+
+# 生地の個数は 0〜(target // size)
+max_counts = [target // s for s in dough_sizes]
+
+for counts in itertools.product(*[range(m+1) for m in max_counts]):
+    total_blocks = sum(c * s for c, s in zip(counts, dough_sizes))
+    if total_blocks > target:
+        continue  # ブロック数オーバー
+
+    # -----------------------------
+    # 3. 各生地の「切り方」も総当たり
+    # -----------------------------
+    # 生地 i を counts[i] 個買う → その分だけ切り方を選ぶ
+    pattern_choices = []
+    for num, patterns in zip(counts, dough_patterns):
+        pattern_choices.append(list(itertools.product(patterns, repeat=num)))
+
+    # 全生地の切り方の組み合わせを総当たり
+    for choice in itertools.product(*pattern_choices):
+        # choice は生地ごとの切り方のリスト
+        total_cutter_use = [0] * len(cutter_sizes)
+
+        # cutter 使用数を合計
+        for group in choice:
+            for pattern in group:
+                for i in range(len(cutter_sizes)):
+                    total_cutter_use[i] += pattern[i]
+
+        # 型抜き器の個数制約を満たすか？
+        if all(total_cutter_use[i] <= cutter_counts[i] for i in range(len(cutter_sizes))):
+            # ブロック数が最大のものを記録
+            if total_blocks > best_total:
+                best_total = total_blocks
+                best_solution = (counts, choice, total_cutter_use)
+
+# -----------------------------
+# 結果表示
+# -----------------------------
+print("最大ブロック数:", best_total)
+print("生地の個数 (7,11,13):", best_solution[0])
+print("型抜き器の使用数 (2,3,5):", best_solution[2])
+print("各生地の切り方:")
+for i, group in enumerate(best_solution[1]):
+    print(f"  生地サイズ {dough_sizes[i]} を {len(group)} 個:")
+    for pattern in group:
+        print("    ", pattern)

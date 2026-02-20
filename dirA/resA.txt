@@ -1,0 +1,13 @@
+best = 0
+best_tuple = None
+
+for a in range(37 // 7 + 1):
+    for b in range(37 // 11 + 1):
+        for c in range(37 // 13 + 1):
+            value = 7*a + 11*b + 13*c
+            if value <= 37 and value > best:
+                best = value
+                best_tuple = (a, b, c)
+
+print("最大値:", best)
+print("a, b, c =", best_tuple)

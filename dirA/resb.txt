@@ -1,0 +1,11 @@
+solutions = [
+    (7*a + 11*b + 13*c, a, b, c)
+    for a in range(6)
+    for b in range(4)
+    for c in range(3)
+    if 7*a + 11*b + 13*c <= 37
+]
+
+best = max(solutions)
+print("最大値:", best[0])
+print("a, b, c =", best[1:])
