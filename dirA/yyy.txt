@@ -1,0 +1,60 @@
+import itertools
+
+# 車両の重量リストを作成
+vehicles = (
+    [4640] * 3 +  # A
+    [3720] * 2 +  # B
+    [3280] * 4    # C
+)
+
+# 車両の名前（表示用）
+vehicle_names = (
+    ["A1", "A2", "A3"] +
+    ["B1", "B2"] +
+    ["C1", "C2", "C3", "C4"]
+)
+
+# トラックの種類（容量）
+truck_types = [7000, 8000, 9000, 10000]
+
+def can_assign(vehicles, truck_capacities):
+    """vehicles を truck_capacities の各トラックに割り当て可能か判定"""
+    n = len(truck_capacities)
+    for assign in itertools.product(range(n), repeat=len(vehicles)):
+        loads = [0] * n
+        ok = True
+        for v, t in zip(vehicles, assign):
+            loads[t] += v
+            if loads[t] > truck_capacities[t]:
+                ok = False
+                break
+        if ok:
+            return loads, assign
+    return None
+
+# トラック台数を 1〜9 台まで試す
+for k in range(1, len(vehicles) + 1):
+    for combo in itertools.product(truck_types, repeat=k):
+        result = can_assign(vehicles, combo)
+        if result:
+            loads, assign = result
+
+            print("=== 最適解（最小台数） ===")
+            print(f"必要トラック台数: {k} 台")
+            print("使用したトラック容量:", combo)
+            print()
+
+            # トラックごとの積載内訳を表示
+            print("=== トラックごとの積載内訳 ===")
+            truck_contents = [[] for _ in range(k)]
+            for name, weight, t in zip(vehicle_names, vehicles, assign):
+                truck_contents[t].append((name, weight))
+
+            for i, (cap, load, contents) in enumerate(zip(combo, loads, truck_contents)):
+                print(f"\n■ トラック {i+1}（容量 {cap} kg）")
+                print(f"  積載量: {load} kg")
+                print("  積載車両:")
+                for name, weight in contents:
+                    print(f"    - {name}: {weight} kg")
+
+            exit()
